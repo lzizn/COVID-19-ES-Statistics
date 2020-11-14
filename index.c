@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+// teste
+
 typedef struct
 {
     char dataCadastro[10];
