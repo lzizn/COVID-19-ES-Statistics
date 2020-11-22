@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TRUE 1
-#define FALSE 0
-
 typedef struct
 {
   char dataCadastro[11];
@@ -59,7 +56,7 @@ int main()
     paciente[i] = LerPaciente(dados);
     for (int j = 0; j < tamanho; j++)
     {
-      if (StringsSaoIguais(paciente[i].municipio, todasCidades[j].municipio) == TRUE)
+      if (StringsSaoIguais(paciente[i].municipio, todasCidades[j].municipio) == 1)
       {
         ehIgual = 1;
         break;
@@ -184,11 +181,11 @@ int StringsSaoIguais(char *str1, char *str2)
 {
   if (memcmp(str1, str2, 8) == 0)
   {
-    return TRUE;
+    return 1;
   }
   else
   {
-    return FALSE;
+    return 0;
   }
 }
 
