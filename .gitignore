@@ -1,4 +1,5 @@
 a.exe
 *.exe
 *.vscode
-.vscode
+*.txt
+/*

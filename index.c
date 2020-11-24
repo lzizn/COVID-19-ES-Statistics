@@ -4,6 +4,12 @@
 
 typedef struct
 {
+  char municipio[31];
+  int quantidade_casos;
+} tCidadeseCasos;
+
+typedef struct
+{
   char dataCadastro[11];
   char dataObito[11];
   char classificacao[13];
@@ -20,166 +26,197 @@ typedef struct
 
 typedef struct
 {
-  char municipio[32];
-  int num_casos;
-} tCasosPorCidade;
+  int mes;
+  int dias;
+} tData;
 
-tPaciente LerPaciente(FILE *dados);
-int FiltrarData(char *data1);
-int DiasEmUmIntervalo(char *data1, char *data2);
-int StringsSaoIguais(char *str1, char *str2);
+tCidadeseCasos todasCidades[78];
+char destinoPasta[10];
+
+FILE *LerDados(FILE *dados);
+tPaciente *LerPacientes(FILE *dados, tPaciente *paciente);
+void LerCidadesContarCasos(tPaciente *pacientes);
+void OrdemTopCasos(int top_n);
+void OrdemAlfabeticaQntMinimaCasos(int quantidade_min_casos);
+void QuantidadeCasosEntreDatas(tData data_menor, tData data_maior, tPaciente *pacientes);
+tData FiltrarData(char *data);
+int stringsSaoIguais(char *str1, char *str2);
 
 int main()
 {
   FILE *dados;
-  tPaciente *paciente;
-  tCasosPorCidade *todasCidades;
+  dados = LerDados(dados);
+
+  tPaciente *pacientes;
+  pacientes = malloc(202362 * sizeof(tPaciente));
+
   char cabecalhoInutil[201];
+  fgets(cabecalhoInutil, 201, dados);
 
-  paciente = malloc(202362 * sizeof(tPaciente));
-  todasCidades = malloc(78 * sizeof(tCasosPorCidade));
+  pacientes = LerPacientes(dados, pacientes);
+  LerCidadesContarCasos(pacientes);
 
+  // fgets(destinoPasta, 10, stdin);
+  // int quantidade_min_casos;
+  // scanf("%d", &quantidade_min_casos);
+  // OrdemAlfabeticaQntMinimaCasos(quantidade_min_casos);
+
+  // tData data_menor, data_maior;
+  // unsigned ano_inutil;
+  // scanf("%4d-%2d-%2d ", &ano_inutil, &data_menor.mes, &data_menor.dias);
+  // scanf("%4d-%2d-%2d", &ano_inutil, &data_maior.mes, &data_maior.dias);
+  // QuantidadeCasosEntreDatas(data_menor, data_maior, pacientes);
+  tData data_menor = {6, 5}, data_maior = {10, 1};
+  QuantidadeCasosEntreDatas(data_menor, data_maior, pacientes);
+
+  free(pacientes);
+  fclose(dados);
+  return 0;
+}
+
+FILE *LerDados(FILE *dados)
+{
   dados = fopen("covid19ES.csv", "r");
   if (dados == NULL)
   {
     printf("Deu ruim");
     exit(1);
   }
-
-  fgets(cabecalhoInutil, 201, dados);
-
-  int tamanho = 0;
-
-  for (int i = 0; i < 202362; i++)
-  {
-    unsigned int ehIgual = 0;
-    paciente[i] = LerPaciente(dados);
-    for (int j = 0; j < tamanho; j++)
-    {
-      if (StringsSaoIguais(paciente[i].municipio, todasCidades[j].municipio) == 1)
-      {
-        ehIgual = 1;
-        break;
-      }
-    }
-    if (ehIgual == 0)
-    {
-      char *str;
-      memcpy(todasCidades[tamanho].municipio, str, strlen(str));
-      // mcpy(paciente[i].municipio, todasCidades[tamanho].municipio, 4);
-      printf("%s\n", todasCidades[tamanho].municipio);
-      tamanho++;
-      free(str);
-    }
-  }
-
-  fclose(dados);
-
-  free(paciente);
-  free(todasCidades);
-
-  return 0;
+  return dados;
 }
 
-tPaciente LerPaciente(FILE *dados)
+tPaciente *LerPacientes(FILE *dados, tPaciente *paciente)
 {
 
-  tPaciente paciente;
-  char dadosPaciente[151];
-  unsigned int contador_virgulas = 0, indice = 0, contador_aspas = 0, i = 0;
-  fgets(dadosPaciente, 150, dados);
+  char dadosPaciente[161];
+  int contador_virgulas = 0, indice = 0, contador_aspas = 0, i = 0, j = 0, tamanho = 0;
 
-  while (dadosPaciente[i] != '\n')
+  while (fgets(dadosPaciente, 160, dados) != NULL)
   {
-    if (dadosPaciente[i] == ',' && contador_aspas == 0)
+
+    i = 0, indice = 0, contador_virgulas = 0, contador_aspas = 0;
+
+    while (dadosPaciente[i] != '\n')
     {
-      contador_virgulas++;
-      indice = 0;
+      if (dadosPaciente[i] == ',' && contador_aspas == 0)
+      {
+        contador_virgulas++;
+        indice = 0;
+        i++;
+        continue;
+      }
+
+      if (dadosPaciente[i] == '"')
+      {
+        if (contador_aspas == 0)
+        {
+          contador_aspas++;
+        }
+        else
+        {
+          contador_aspas = 0;
+        }
+      }
+
+      if (contador_virgulas == 0)
+      {
+        paciente[j].dataCadastro[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 1)
+      {
+        paciente[j].dataObito[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 2)
+      {
+        paciente[j].classificacao[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 3)
+      {
+        paciente[j].municipio[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 4)
+      {
+        paciente[j].idadeNaDataNotificacao[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 5)
+      {
+        paciente[j].comorbidadePulmao[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 6)
+      {
+        paciente[j].comorbidadeCardio[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 7)
+      {
+        paciente[j].comorbidadeRenal[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 8)
+      {
+        paciente[j].comorbidadeDiabetes[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 9)
+      {
+        paciente[j].comorbidadeTabagismo[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 10)
+      {
+        paciente[j].comorbidadeObesidade[indice] = dadosPaciente[i];
+      }
+      else if (contador_virgulas == 11)
+      {
+        paciente[j].ficouInternado[indice] = dadosPaciente[i];
+      }
       i++;
-      continue;
+      indice++;
     }
 
-    if (dadosPaciente[i] == '"')
-    {
-      if (contador_aspas == 0)
-      {
-        contador_aspas++;
-      }
-      else
-      {
-        contador_aspas = 0;
-      }
-    }
-
-    if (contador_virgulas == 0)
-    {
-      paciente.dataCadastro[indice] = dadosPaciente[i];
-      paciente.dataCadastro[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 1)
-    {
-      paciente.dataObito[indice] = dadosPaciente[i];
-      paciente.dataObito[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 2)
-    {
-      paciente.classificacao[indice] = dadosPaciente[i];
-      paciente.classificacao[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 3)
-    {
-      paciente.municipio[indice] = dadosPaciente[i];
-      paciente.municipio[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 4)
-    {
-      paciente.idadeNaDataNotificacao[indice] = dadosPaciente[i];
-      paciente.idadeNaDataNotificacao[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 5)
-    {
-      paciente.comorbidadePulmao[indice] = dadosPaciente[i];
-      paciente.comorbidadePulmao[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 6)
-    {
-      paciente.comorbidadeCardio[indice] = dadosPaciente[i];
-      paciente.comorbidadeCardio[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 7)
-    {
-      paciente.comorbidadeRenal[indice] = dadosPaciente[i];
-      paciente.comorbidadeRenal[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 8)
-    {
-      paciente.comorbidadeDiabetes[indice] = dadosPaciente[i];
-      paciente.comorbidadeDiabetes[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 9)
-    {
-      paciente.comorbidadeTabagismo[indice] = dadosPaciente[i];
-      paciente.comorbidadeTabagismo[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 10)
-    {
-      paciente.comorbidadeObesidade[indice] = dadosPaciente[i];
-      paciente.comorbidadeObesidade[indice + 1] = '\0';
-    }
-    else if (contador_virgulas == 11)
-    {
-      paciente.ficouInternado[indice] = dadosPaciente[i];
-      paciente.ficouInternado[indice + 1] = '\0';
-    }
-    i++;
-    indice++;
+    j++;
   }
+
+  free(dados);
   return paciente;
 }
 
-int StringsSaoIguais(char *str1, char *str2)
+void LerCidadesContarCasos(tPaciente *pacientes)
 {
-  if (memcmp(str1, str2, 8) == 0)
+  int indice = 0;
+
+  for (int i = 0; i < 78; i++)
+  {
+    todasCidades[i].quantidade_casos = 0;
+  }
+
+  for (int i = 0; i < 202363; i++)
+  {
+
+    if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
+    {
+
+      int ja_Esta_Cadastrado = 0;
+
+      for (int j = 0; j < indice; j++)
+      {
+        if (strcmp(pacientes[i].municipio, todasCidades[j].municipio) == 0)
+        {
+          todasCidades[j].quantidade_casos++;
+          ja_Esta_Cadastrado = 1;
+          break;
+        }
+      }
+
+      if (ja_Esta_Cadastrado == 0)
+      {
+        strcpy(todasCidades[indice].municipio, pacientes[i].municipio);
+        todasCidades[indice].quantidade_casos++;
+        indice++;
+      }
+    }
+  }
+}
+
+int stringsSaoIguais(char *str1, char *str2)
+{
+  if (strcmp(str1, str2) == 0)
   {
     return 1;
   }
@@ -189,46 +226,129 @@ int StringsSaoIguais(char *str1, char *str2)
   }
 }
 
-int DiasEmUmIntervalo(char *data1, char *data2)
+// void OrdemTopCasos(int top_n)
+// {
+//   int aux;
+
+//   for (int i = 0; i < 78; i++)
+//   {
+//     for (int j = i + 1; j < 78; j++)
+//     {
+//       if (todasCidades[i].quantidade_casos < todasCidades[j].quantidade_casos)
+//       {
+//         aux = todasCidades[i].quantidade_casos;
+//         todasCidades[i].quantidade_casos = todasCidades[j].quantidade_casos;
+//         todasCidades[j].quantidade_casos = aux;
+//       }
+//     }
+//   }
+
+//   FILE *saida1;
+
+//   saida1 = fopen("saida1.txt", "wb");
+
+//   for (int i = 0; i < top_n; i++)
+//   {
+//     fprintf(saida1, "- %s: %d casos\n", todasCidades[i].municipio, todasCidades[i].quantidade_casos);
+//   }
+//   fclose(saida1);
+// }
+void OrdemAlfabeticaQntMinimaCasos(int quantidade_min_casos)
 {
-  unsigned int dia1, dia2, mes1, mes2, ano1, ano2;
-  char *quebrar_data1, *quebrar_data2;
 
-  quebrar_data1 = strtok(data1, "-");
-  ano1 = atoi(quebrar_data1);
+  char aux[35];
 
-  quebrar_data1 = strtok(NULL, "-");
-  mes1 = atoi(quebrar_data1);
+  for (int i = 0; i < 78; i++)
+  {
+    for (int j = i + 1; j < 78; j++)
+    {
+      if (strcmp(todasCidades[i].municipio, todasCidades[j].municipio) > 0)
+      {
+        strcpy(aux, todasCidades[i].municipio);
+        strcpy(todasCidades[i].municipio, todasCidades[j].municipio);
+        strcpy(todasCidades[j].municipio, aux);
+      }
+    }
+  }
 
-  quebrar_data1 = strtok(NULL, "-");
-  dia1 = atoi(quebrar_data1);
+  FILE *saida2;
 
-  quebrar_data2 = strtok(data2, "-");
-  ano2 = atoi(quebrar_data2);
+  saida2 = fopen("saida2.txt", "wb");
 
-  quebrar_data2 = strtok(NULL, "-");
-  mes2 = atoi(quebrar_data2);
-
-  quebrar_data2 = strtok(NULL, "-");
-  dia2 = atoi(quebrar_data2);
-
-  free(quebrar_data1);
-  free(quebrar_data2);
+  for (int i = 0; i < quantidade_min_casos; i++)
+  {
+    fprintf(saida2, "- %s: %d casos\n", todasCidades[i].municipio, todasCidades[i].quantidade_casos);
+  }
+  fclose(saida2);
 }
 
-int FiltrarData(char *data1)
+void QuantidadeCasosEntreDatas(tData data_menor, tData data_maior, tPaciente *pacientes)
 {
-  unsigned int dia, mes, ano;
-  char *quebrar_data;
+  unsigned int media_entre_meses = (data_maior.mes + data_menor.mes) / 2;
 
-  quebrar_data = strtok(data1, "-");
-  ano = atoi(quebrar_data);
+  int quantidade_casos_intervalo = 0;
+  for (int i = 0; i < 202363; i++)
+  {
+    tData dataCadastro = FiltrarData(pacientes[i].dataCadastro);
+    if (data_maior.mes == dataCadastro.mes && data_menor.mes == dataCadastro.mes)
+    {
+      if (data_maior.dias >= dataCadastro.dias && dataCadastro.dias >= data_menor.dias)
+      {
+        if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
+        {
+          quantidade_casos_intervalo++;
+        }
+      }
+    }
+    else if (data_menor.mes == dataCadastro.mes)
+    {
+      if (dataCadastro.dias >= data_menor.dias)
+      {
+        if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
+        {
+          quantidade_casos_intervalo++;
+        }
+      }
+    }
+    else if (data_maior.mes == dataCadastro.mes)
+    {
+      if (dataCadastro.dias <= data_maior.dias)
+      {
+        if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
+        {
+          quantidade_casos_intervalo++;
+        }
+      }
+    }
+    else if ((dataCadastro.mes >= (media_entre_meses)) && (dataCadastro.mes <= data_maior.mes))
+    {
+      if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
+      {
+        quantidade_casos_intervalo++;
+      }
+    }
+    else if ((dataCadastro.mes <= (media_entre_meses)) && (dataCadastro.mes >= data_menor.mes))
+    {
+      if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
+      {
+        // printf("%d-%d\n", dataCadastro.mes, dataCadastro.dias);
+        quantidade_casos_intervalo++;
+      }
+    }
+    // printf("%d\n", quantidade_casos_intervalo);
+  }
+}
 
-  quebrar_data = strtok(NULL, "-");
-  mes = atoi(quebrar_data);
+tData FiltrarData(char *data)
+{
+  tData dataFiltrada;
+  char *aux;
+  aux = strtok(data, "-");
+  aux = strtok(NULL, "-");
+  dataFiltrada.mes = atoi(aux);
+  aux = strtok(NULL, "-");
+  dataFiltrada.dias = atoi(aux);
 
-  quebrar_data = strtok(NULL, "-");
-  dia = atoi(quebrar_data);
-
-  free(quebrar_data);
+  free(aux);
+  return dataFiltrada;
 }
