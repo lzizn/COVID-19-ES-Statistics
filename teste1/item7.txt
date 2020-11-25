@@ -1,2 +1,0 @@
-A média e desvio padrão da idade: 70.212 -- 16.070
-A % de pessoas que morreram sem comorbidade: 27.799%
