@@ -87,7 +87,7 @@ int main()
   */
 
   tPaciente *pacientes;
-  pacientes = malloc(202362 * sizeof(tPaciente));
+  pacientes = (tPaciente *)calloc(202362, sizeof(tPaciente));
 
   /*  O cabeçalho inutil */
 
@@ -113,7 +113,7 @@ int main()
   int quantidadeMinCasos;
   scanf("%d", &quantidadeMinCasos);
   Item_3(quantidadeMinCasos);
-  printf("--%d", quantidadeMinCasos);
+  // printf("--%d", quantidadeMinCasos);
   /* Preparando o terreno para os itens que precisam de data,
    * reutilizaremos essas variáveis em todo os itens necessários.
    */
@@ -372,8 +372,6 @@ tData FiltrarData(char data[11])
   aux = strtok(NULL, "-");
   dataFiltrada.dias = atoi(aux);
 
-  free(aux);
-  aux = NULL;
   return dataFiltrada;
 }
 
@@ -712,7 +710,7 @@ void Item_7(tData data_menor, tData data_maior, tPaciente *pacientes)
   int quant_mortos = 0, total_idade = 0, morreram_sem_comorbidade = 0;
   int *idade_pacientes_confirmados;
 
-  idade_pacientes_confirmados = malloc(50000 * sizeof(int));
+  idade_pacientes_confirmados = (int *)calloc(50000, sizeof(int));
 
   for (int i = 0; i < 202363; i++)
   {
@@ -742,9 +740,6 @@ void Item_7(tData data_menor, tData data_maior, tPaciente *pacientes)
           {
             morreram_sem_comorbidade++;
           }
-
-          free(aux);
-          aux = NULL;
         }
       }
     }
