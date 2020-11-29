@@ -3,12 +3,12 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+// #include <sys/stat.h>
+// #include <sys/types.h>
 #include <unistd.h>
 
 /*
- * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos, de certa forma,que o próprio
+ * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos, de certa forma, que o próprio
  *  código já está bem autoexplicativo.
  * 
  * 
@@ -19,6 +19,8 @@
  * esse Array em diversas funções e achamos melhor reaproveitar a ordenação feita. O mesmo acontece para
  * a destinoPasta[10], passar por parâmetro para cada função de printar ficaria maçante.
 */
+
+#define tamanho 202362
 
 typedef struct
 {
@@ -44,10 +46,12 @@ typedef struct
 
 typedef struct
 {
+  int ano;
   int mes;
   int dias;
 } tData;
 
+tPaciente pacientes[tamanho];
 tCidadeseCasos todasCidades[78];
 char destinoPasta[10];
 
@@ -60,18 +64,18 @@ char destinoPasta[10];
  */
 
 FILE *LerDados(FILE *dados);
-tPaciente *LerPacientes(FILE *dados, tPaciente *paciente);
-void LerCidadesContarCasos(tPaciente *pacientes);
+void LerPacientes(FILE *dados);
+void LerCidadesContarCasos();
 
-tData FiltrarData(char *data);
+tData FiltrarData(char data[11]);
 int DataEstaNoIntervalo(tData data_menor, tData data_maior, tData dataAComparar);
 int TemComorbidade(tPaciente paciente);
 
 void Item_3(int quantidade_min_casos);
-void Item_4(tData data_menor, tData data_maior, tPaciente *pacientes);
-void Item_5(int top_n, tData data_menor, tData data_maior, tPaciente *pacientes);
-void Item_6(char nome_municipio[31], tPaciente *pacientes);
-void Item_7(tData data_menor, tData data_maior, tPaciente *pacientes);
+void Item_4(tData data_menor, tData data_maior);
+void Item_5(int top_n, tData data_menor, tData data_maior);
+void Item_6(char nome_municipio[31]);
+void Item_7(tData data_menor, tData data_maior);
 
 int main()
 {
@@ -86,9 +90,6 @@ int main()
    *  um grande aprendizado.
   */
 
-  tPaciente *pacientes;
-  pacientes = (tPaciente *)calloc(202362, sizeof(tPaciente));
-
   /*  O cabeçalho inutil */
 
   char cabecalhoInutil[201];
@@ -98,8 +99,9 @@ int main()
    *  e após isso guardando cidades e  as informações de quantidade de casos.
   */
 
-  pacientes = LerPacientes(dados, pacientes);
-  LerCidadesContarCasos(pacientes);
+  LerPacientes(dados);
+
+  LerCidadesContarCasos();
 
   /*  Onde a mágica começa:
    *  Lemos o destino do arquivo e assim a variável global está pronta para ser usada.
@@ -113,41 +115,57 @@ int main()
   int quantidadeMinCasos;
   scanf("%d", &quantidadeMinCasos);
   Item_3(quantidadeMinCasos);
-  // printf("--%d", quantidadeMinCasos);
+
   /* Preparando o terreno para os itens que precisam de data,
    * reutilizaremos essas variáveis em todo os itens necessários.
    */
 
   tData data_menor, data_maior;
 
+  // data_menor.ano = 2020;
+  // data_menor.mes = 7;
+  // data_menor.dias = 10;
+  // data_maior.ano = 2020;
+  // data_maior.mes = 7;
+  // data_maior.dias = 11;
+
   /*  O quarto item: */
 
-  scanf("%*4d-%2d-%2d ", &data_menor.mes, &data_menor.dias);
-  scanf("%*4d-%2d-%2d ", &data_maior.mes, &data_maior.dias);
-  Item_4(data_menor, data_maior, pacientes);
+  scanf("%4d-%2d-%2d ", &data_menor.ano, &data_menor.mes, &data_menor.dias);
+  scanf("%4d-%2d-%2d ", &data_menor.ano, &data_maior.mes, &data_maior.dias);
+  Item_4(data_menor, data_maior);
 
   /*  O quinto item: */
 
   unsigned int top_n = 10;
-  scanf("%d %*4d-%2d-%2d %*4d-%2d-%2d ", &top_n, &data_menor.mes, &data_menor.dias, &data_maior.mes, &data_maior.dias);
-  Item_5(top_n, data_menor, data_maior, pacientes);
+
+  // data_menor.ano = 2020;
+  // data_menor.mes = 7;
+  // data_menor.dias = 10;
+  // data_maior.ano = 2020;
+  // data_maior.mes = 8;
+  // data_maior.dias = 10;
+
+  scanf("%d %4d-%2d-%2d %4d-%2d-%2d ", &top_n, &data_menor.ano, &data_menor.mes, &data_menor.dias, &data_maior.ano, &data_maior.mes, &data_maior.dias);
+  Item_5(top_n, data_menor, data_maior);
 
   /*  O sexto item: */
 
   char municipio[31];
   fgets(municipio, 31, stdin);
-  Item_6(municipio, pacientes);
+  Item_6(municipio);
 
   /*  O sétimo item: */
 
-  scanf("%*4d-%2d-%2d ", &data_menor.mes, &data_menor.dias);
-  scanf("%*4d-%2d-%2d", &data_maior.mes, &data_maior.dias);
-  Item_7(data_menor, data_maior, pacientes);
+  scanf("%4d-%2d-%2d ", &data_maior.ano, &data_menor.mes, &data_menor.dias);
+  scanf("%4d-%2d-%2d", &data_maior.ano, &data_maior.mes, &data_maior.dias);
+  Item_7(data_menor, data_maior);
 
   /*  O Finalizando graças a Deus obrigado família soagradece. */
 
-  free(pacientes);
-  pacientes = NULL;
+  fclose(dados);
+  dados = NULL;
+
   return 0;
 }
 
@@ -165,7 +183,7 @@ FILE *LerDados(FILE *dados)
   return dados;
 }
 
-tPaciente *LerPacientes(FILE *dados, tPaciente *paciente)
+void LerPacientes(FILE *dados)
 {
 
   /*  Nossa forma de leitura de pacientes é via um contador de vírgulas.
@@ -226,51 +244,51 @@ tPaciente *LerPacientes(FILE *dados, tPaciente *paciente)
 
       if (contador_virgulas == 0)
       {
-        paciente[j].dataCadastro[indice] = dadosPaciente[i];
+        pacientes[j].dataCadastro[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 1)
       {
-        paciente[j].dataObito[indice] = dadosPaciente[i];
+        pacientes[j].dataObito[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 2)
       {
-        paciente[j].classificacao[indice] = dadosPaciente[i];
+        pacientes[j].classificacao[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 3)
       {
-        paciente[j].municipio[indice] = dadosPaciente[i];
+        pacientes[j].municipio[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 4)
       {
-        paciente[j].idadeNaDataNotificacao[indice] = dadosPaciente[i];
+        pacientes[j].idadeNaDataNotificacao[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 5)
       {
-        paciente[j].comorbidadePulmao[indice] = dadosPaciente[i];
+        pacientes[j].comorbidadePulmao[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 6)
       {
-        paciente[j].comorbidadeCardio[indice] = dadosPaciente[i];
+        pacientes[j].comorbidadeCardio[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 7)
       {
-        paciente[j].comorbidadeRenal[indice] = dadosPaciente[i];
+        pacientes[j].comorbidadeRenal[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 8)
       {
-        paciente[j].comorbidadeDiabetes[indice] = dadosPaciente[i];
+        pacientes[j].comorbidadeDiabetes[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 9)
       {
-        paciente[j].comorbidadeTabagismo[indice] = dadosPaciente[i];
+        pacientes[j].comorbidadeTabagismo[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 10)
       {
-        paciente[j].comorbidadeObesidade[indice] = dadosPaciente[i];
+        pacientes[j].comorbidadeObesidade[indice] = dadosPaciente[i];
       }
       else if (contador_virgulas == 11)
       {
-        paciente[j].ficouInternado[indice] = dadosPaciente[i];
+        pacientes[j].ficouInternado[indice] = dadosPaciente[i];
       }
 
       /*  Aqui o respectivo indice do campo do paciente já recebeu o dadosPaciente[i]
@@ -288,10 +306,9 @@ tPaciente *LerPacientes(FILE *dados, tPaciente *paciente)
 
   fclose(dados);
   dados = NULL;
-  return paciente;
 }
 
-void LerCidadesContarCasos(tPaciente *pacientes)
+void LerCidadesContarCasos()
 {
 
   /*  Essa função itera todo o ponteiro de pacientes e já guarda todos os casos confirmados
@@ -326,7 +343,6 @@ void LerCidadesContarCasos(tPaciente *pacientes)
 
   for (int i = 0; i < 202363; i++)
   {
-
     if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
     {
 
@@ -364,11 +380,19 @@ tData FiltrarData(char data[11])
    *  Ao final temos a Data devidamente filtrada e a retornamos.
   */
 
+  char auxData[11];
+  strcpy(auxData, data);
+  auxData[11] = '\0';
+
   tData dataFiltrada;
+
   char *aux;
-  aux = strtok(data, "-");
+  aux = strtok(auxData, "-");
+  dataFiltrada.ano = atoi(aux);
+
   aux = strtok(NULL, "-");
   dataFiltrada.mes = atoi(aux);
+
   aux = strtok(NULL, "-");
   dataFiltrada.dias = atoi(aux);
 
@@ -512,7 +536,7 @@ void Item_3(int quantidade_min_casos)
   item3 = NULL;
 }
 
-void Item_4(tData data_menor, tData data_maior, tPaciente *pacientes)
+void Item_4(tData data_menor, tData data_maior)
 {
 
   /*  
@@ -531,9 +555,7 @@ void Item_4(tData data_menor, tData data_maior, tPaciente *pacientes)
   int quantidade_casos_intervalo = 0;
   for (int i = 0; i < 202363; i++)
   {
-    char auxDataPaciente[11];
-    strcpy(auxDataPaciente, pacientes[i].dataCadastro);
-    tData dataCadastro = FiltrarData(auxDataPaciente);
+    tData dataCadastro = FiltrarData(pacientes[i].dataCadastro);
     if (DataEstaNoIntervalo(data_menor, data_maior, dataCadastro) == 1)
     {
       if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
@@ -544,7 +566,7 @@ void Item_4(tData data_menor, tData data_maior, tPaciente *pacientes)
   }
 
   FILE *item4;
-  char auxiliarPasta[20];
+  char auxiliarPasta[20] = {'\0'};
   strcpy(auxiliarPasta, destinoPasta);
   strcat(auxiliarPasta, "item4.txt");
   item4 = fopen(auxiliarPasta, "wb");
@@ -555,10 +577,8 @@ void Item_4(tData data_menor, tData data_maior, tPaciente *pacientes)
   item4 = NULL;
 }
 
-void Item_5(int top_n, tData data_menor, tData data_maior, tPaciente *pacientes)
+void Item_5(int top_n, tData data_menor, tData data_maior)
 {
-
-  tCidadeseCasos auxiliar;
 
   for (int i = 0; i < 78; i++)
   {
@@ -567,9 +587,7 @@ void Item_5(int top_n, tData data_menor, tData data_maior, tPaciente *pacientes)
 
   for (int i = 0; i < 202363; i++)
   {
-    char auxDataPaciente[11];
-    strcpy(auxDataPaciente, pacientes[i].dataCadastro);
-    tData dataCadastro = FiltrarData(auxDataPaciente);
+    tData dataCadastro = FiltrarData(pacientes[i].dataCadastro);
     if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
     {
       if (DataEstaNoIntervalo(data_menor, data_maior, dataCadastro) == 1)
@@ -585,6 +603,8 @@ void Item_5(int top_n, tData data_menor, tData data_maior, tPaciente *pacientes)
       }
     }
   }
+
+  tCidadeseCasos auxiliar;
 
   for (int i = 0; i < 78; i++)
   {
@@ -614,7 +634,7 @@ void Item_5(int top_n, tData data_menor, tData data_maior, tPaciente *pacientes)
   item5 = NULL;
 }
 
-void Item_6(char nome_municipio[31], tPaciente *pacientes)
+void Item_6(char nome_municipio[31])
 {
 
   int cont_confirmados = 0, quant_internadas = 0, quant_morreram = 0, quant_internadas_e_morreram = 0;
@@ -704,13 +724,11 @@ void Item_6(char nome_municipio[31], tPaciente *pacientes)
   item6 = NULL;
 }
 
-void Item_7(tData data_menor, tData data_maior, tPaciente *pacientes)
+void Item_7(tData data_menor, tData data_maior)
 {
 
   int quant_mortos = 0, total_idade = 0, morreram_sem_comorbidade = 0;
-  int *idade_pacientes_confirmados;
-
-  idade_pacientes_confirmados = (int *)calloc(50000, sizeof(int));
+  int idade_pacientes_confirmados[10000];
 
   for (int i = 0; i < 202363; i++)
   {
@@ -764,7 +782,4 @@ void Item_7(tData data_menor, tData data_maior, tPaciente *pacientes)
   item7 = fopen(auxiliarPasta, "wb");
   fprintf(item7, "A media e desvio padrao da idade: %.3lf -- %.3lf\n", media_idades, desvioPadrao);
   fprintf(item7, "A %% de pessoas que morreram sem comorbidade: %.3lf%%", porcentagem_morreram_sem_comorbidade);
-
-  free(idade_pacientes_confirmados);
-  idade_pacientes_confirmados = NULL;
 }
