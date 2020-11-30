@@ -3,22 +3,21 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
-// #include <sys/stat.h>
-// #include <sys/types.h>
-#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+
 
 /*
- * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos, de certa forma, que o próprio
- *  código já está bem autoexplicativo.
+ * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos,
+ * de certa forma, que o próprio código já está bem autoexplicativo.
  * 
- * 
- *
- * No cabeçalho definimos todos os tipos de dados que usaremos.
- * 
- * Criamos duas variáveis globais "todasCidades[78]", 78 pois é a quantidade de estados no ES e global pois usamos
- * esse Array em diversas funções e achamos melhor reaproveitar a ordenação feita. O mesmo acontece para
- * a destinoPasta[10], passar por parâmetro para cada função de printar ficaria maçante.
+ * Criamos variáveis globais pois teríamos que passar tPacientes pacientes[tamanho] para basicamente
+ * todos os itens, o mesmo aconteceria para a pasta de destino e o array de cidades. Assim, achamos
+ * melhor deixar como variáveis globais.
 */
+
+
 
 #define tamanho 202362
 
@@ -51,9 +50,12 @@ typedef struct
   int dias;
 } tData;
 
+
 tPaciente pacientes[tamanho];
 tCidadeseCasos todasCidades[78];
 char destinoPasta[10];
+
+
 
 /* O cabeçalho de funções está organizado na ordem:
  *    1 - entrada de dados,
@@ -62,6 +64,8 @@ char destinoPasta[10];
  *
  * Explicaremos mais detalhadamente sobre as funções no bloco de código de cada uma;
  */
+
+
 
 FILE *LerDados(FILE *dados);
 void LerPacientes(FILE *dados);
@@ -80,88 +84,87 @@ void Item_7(tData data_menor, tData data_maior);
 int main()
 {
 
-  /*  Nossa main é onde a entrada de todos os dados acontecem  */
-
   FILE *dados;
   dados = LerDados(dados);
 
-  /*  Decidimos usar ponteiro pois a alocação dinâmica nos permitiu uma flexibilidade maior
-   *  em manusear os dados. Além disso, foi um grande desafio, afinal somos calouros e serviu como
-   *  um grande aprendizado.
-  */
 
   /*  O cabeçalho inutil */
+
 
   char cabecalhoInutil[201];
   fgets(cabecalhoInutil, 201, dados);
 
-  /*  "Preparando o terreno" para os itens, lendo o arquivo csv, retornando o ponteiro de pacientes
+
+  /*  "Preparando o terreno" para os itens, lendo o arquivo csv e armazenando na
+   *  variável global de pacientes.
    *  e após isso guardando cidades e  as informações de quantidade de casos.
   */
+
 
   LerPacientes(dados);
 
   LerCidadesContarCasos();
 
+
   /*  Onde a mágica começa:
    *  Lemos o destino do arquivo e assim a variável global está pronta para ser usada.
   */
 
+
   fgets(destinoPasta, 10, stdin);
-  mkdir(destinoPasta);
+  mkdir(destinoPasta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
 
   /*  O terceiro item: */
 
-  int quantidadeMinCasos;
+
+  int quantidadeMinCasos = 500;
   scanf("%d", &quantidadeMinCasos);
   Item_3(quantidadeMinCasos);
+
 
   /* Preparando o terreno para os itens que precisam de data,
    * reutilizaremos essas variáveis em todo os itens necessários.
    */
 
+
   tData data_menor, data_maior;
 
-  // data_menor.ano = 2020;
-  // data_menor.mes = 7;
-  // data_menor.dias = 10;
-  // data_maior.ano = 2020;
-  // data_maior.mes = 7;
-  // data_maior.dias = 11;
 
   /*  O quarto item: */
+
 
   scanf("%4d-%2d-%2d ", &data_menor.ano, &data_menor.mes, &data_menor.dias);
   scanf("%4d-%2d-%2d ", &data_menor.ano, &data_maior.mes, &data_maior.dias);
   Item_4(data_menor, data_maior);
 
+
   /*  O quinto item: */
 
-  unsigned int top_n = 10;
 
-  // data_menor.ano = 2020;
-  // data_menor.mes = 7;
-  // data_menor.dias = 10;
-  // data_maior.ano = 2020;
-  // data_maior.mes = 8;
-  // data_maior.dias = 10;
-
+  unsigned int top_n;
   scanf("%d %4d-%2d-%2d %4d-%2d-%2d ", &top_n, &data_menor.ano, &data_menor.mes, &data_menor.dias, &data_maior.ano, &data_maior.mes, &data_maior.dias);
   Item_5(top_n, data_menor, data_maior);
 
+
   /*  O sexto item: */
+
 
   char municipio[31];
   fgets(municipio, 31, stdin);
   Item_6(municipio);
 
+
   /*  O sétimo item: */
+
 
   scanf("%4d-%2d-%2d ", &data_maior.ano, &data_menor.mes, &data_menor.dias);
   scanf("%4d-%2d-%2d", &data_maior.ano, &data_maior.mes, &data_maior.dias);
   Item_7(data_menor, data_maior);
 
+
   /*  O Finalizando graças a Deus obrigado família soagradece. */
+
 
   fclose(dados);
   dados = NULL;
@@ -169,11 +172,11 @@ int main()
   return 0;
 }
 
+
+
 FILE *LerDados(FILE *dados)
 {
-
-  /* Lendo o arquivo e retornando o ponteiro dele. */
-
+  
   dados = fopen("covid19ES.csv", "r");
   if (dados == NULL)
   {
@@ -183,8 +186,12 @@ FILE *LerDados(FILE *dados)
   return dados;
 }
 
+
+
 void LerPacientes(FILE *dados)
 {
+
+
 
   /*  Nossa forma de leitura de pacientes é via um contador de vírgulas.
    *  
@@ -205,20 +212,26 @@ void LerPacientes(FILE *dados)
    *    aspasEstaoAtivas -> verifica se achou aspas, usado para "ignorar" as vírgulas da idade (não aumentar o contador_vírgulas)
   */
 
+
+
   char dadosPaciente[161];
   int contador_virgulas = 0, indice = 0, i = 0, aspasEstaoAtivas = 0, j = 0;
 
   while (fgets(dadosPaciente, 160, dados) != NULL)
   {
 
-    /*  Redefinindo as variáveis "controladoras" guardar o paciente anterior no ponteiro e pegar a nova linha de dados. */
+
+    /*  Redefinindo as variáveis "controladoras" guardar o paciente anterior e pegar a nova linha de dados. */
+
 
     i = 0, indice = 0, contador_virgulas = 0, aspasEstaoAtivas = 0;
 
     while (dadosPaciente[i] != '\n')
     {
 
+
       /*  Controlador de aspas e vírgulas */
+
 
       if (dadosPaciente[i] == ',' && aspasEstaoAtivas == 0)
       {
@@ -240,7 +253,9 @@ void LerPacientes(FILE *dados)
         }
       }
 
+
       /* Com esses if else's nós pegamos todos os chars */
+
 
       if (contador_virgulas == 0)
       {
@@ -291,15 +306,19 @@ void LerPacientes(FILE *dados)
         pacientes[j].ficouInternado[indice] = dadosPaciente[i];
       }
 
+
       /*  Aqui o respectivo indice do campo do paciente já recebeu o dadosPaciente[i]
        *  e nós iteramos as duas variáveis
       */
+
 
       i++;
       indice++;
     }
 
-    /* Terminando de ler o paciente[j] ele itera o j e começa a ler paciente[j+1] */
+
+    /* Terminando de ler o pacientes[j] ele itera o j e começa a ler pacientes[j+1] */
+
 
     j++;
   }
@@ -308,10 +327,14 @@ void LerPacientes(FILE *dados)
   dados = NULL;
 }
 
+
+
 void LerCidadesContarCasos()
 {
 
-  /*  Essa função itera todo o ponteiro de pacientes e já guarda todos os casos confirmados
+
+
+  /*  Essa função itera todo o vetor de pacientes e já guarda todos os casos confirmados
    *  e seus respectivos municípios.
    * 
    *  Primeiro criamos uma variável chamada "indice" que será responsável por verificar a quantidade
@@ -320,19 +343,20 @@ void LerCidadesContarCasos()
    *  Em seguida setamos como 0 a propriedade quantidade_casos do vetor "todasCidades[78]" a fim
    *  de iterarmos essa posteriormente.
    * 
-   *  Após isso iteramos o ponteiro e para cada paciente verificamos se o caso é confirmado
+   *  Após isso iteramos o vetor e para cada paciente verificamos se o caso é confirmado
    *  usando a função strcmp, se não é confirmado pulamos para a próxima iteração,
    *  se é confirmado criamos uma variável chamada "ja_Esta_Cadastrado" com valor 0 ("não"),
-   * e iteramos um for j = 0; j < quantidadesCidadesGuardadas pois não queríamos iterar até 78 toda vez,
-   *  afinal não é necessário. Dentro desse for comparamos se a cidade do paciente é igual à alguma já
-   *  existente no vetor;
-   *  Se sim, setamos a variável já_Esta_Cadastrado para um ("sim"), iteramos a
-   *  quantidade de casos desse muncípio e quebramos o for.
+   *  e iteramos um for j = 0; j < quantidadesCidadesGuardadas.
+   *  Dentro desse for comparamos com strcmp se a cidade do paciente é igual à alguma
+   *  já existente no vetor; Se sim, setamos a variável já_Esta_Cadastrado para um ("sim"),
+   *  iteramos a quantidade de casos desse muncípio e quebramos o for.
    *  Se não, fazemos uma cópia do municipio do paciente para a propriedade municipio do todasCidades e
    *  iteramos a quantidade_casos do município criado e também a quantidadeDeCidadesGuardadas.
    * 
    *  Dessa forma, ao final, teremos 78 municípios cadastrados com suas respectivas quantidade de casos.
   */
+
+
 
   int quantidadesCidadesGuardadas = 0;
 
@@ -368,36 +392,40 @@ void LerCidadesContarCasos()
   }
 }
 
+
+
 tData FiltrarData(char data[11])
 {
 
   /*  Essa função é utilizada somente para separar os meses e os dias de um array de char dados.
 
-   *  Criamos um ponteiro auxiliar que guarda os tokens dados pela função strtok passando como
-   *  parametro os traços('-') das strings de datas. Após isso transformamos a string em inteiro usando
-   *  a função atoi e armazenamos nas propriedades "mes" e "dias" do nosso tipo definido tData.
+   *  Criamos uma string auxiliar que guarda os pedaços de string dados pela função
+   *  strtok passando como parametro os traços('-') das strings de datas. Após isso
+   *  transformamos a string em inteiro usando a função atoi e armazenamos nas propriedades
+   *  "mes" e "dias" do nosso tipo definido tData.
    * 
-   *  Ao final temos a Data devidamente filtrada e a retornamos.
+   *  Ao final temos a Data filtrada e a retornamos.
   */
 
   char auxData[11];
   strcpy(auxData, data);
-  auxData[11] = '\0';
 
   tData dataFiltrada;
 
   char *aux;
   aux = strtok(auxData, "-");
-  dataFiltrada.ano = atoi(aux);
+  if(aux != NULL){ dataFiltrada.ano = atoi(aux);}
 
   aux = strtok(NULL, "-");
-  dataFiltrada.mes = atoi(aux);
+  if(aux != NULL){ dataFiltrada.mes = atoi(aux);}
 
   aux = strtok(NULL, "-");
-  dataFiltrada.dias = atoi(aux);
+  if(aux != NULL){ dataFiltrada.dias = atoi(aux);}
 
   return dataFiltrada;
 }
+
+
 
 int DataEstaNoIntervalo(tData data_menor, tData data_maior, tData dataAComparar)
 {
@@ -451,6 +479,8 @@ int DataEstaNoIntervalo(tData data_menor, tData data_maior, tData dataAComparar)
   return 0;
 }
 
+
+
 int TemComorbidade(tPaciente paciente)
 {
 
@@ -483,6 +513,8 @@ int TemComorbidade(tPaciente paciente)
 
   return 1;
 }
+
+
 
 void Item_3(int quantidade_min_casos)
 {
@@ -522,7 +554,11 @@ void Item_3(int quantidade_min_casos)
   char auxiliarPasta[20];
   strcpy(auxiliarPasta, destinoPasta);
   strcat(auxiliarPasta, "item3.txt");
-  item3 = fopen(auxiliarPasta, "wb");
+  item3 = fopen(auxiliarPasta, "w+");
+
+  if(item3 == NULL){
+    exit(1);
+  }
 
   for (int i = 0; i < 78; i++)
   {
@@ -536,8 +572,12 @@ void Item_3(int quantidade_min_casos)
   item3 = NULL;
 }
 
+
+
 void Item_4(tData data_menor, tData data_maior)
 {
+
+
 
   /*  
    *  Nesse item 4 nós criamos uma variável para armazenar a quantidade de casos no intervalo e
@@ -546,11 +586,9 @@ void Item_4(tData data_menor, tData data_maior)
    *  tem classificação como Confirmado, se sim, aumentamos o a quant_casos_intervalo.
    * 
    *  Ao final dela printamos essa quantidade de casos do intervalo.
-   * 
-   *  Uma observação importante é que utilizamos um vetor de char de auxiliar de data.
-   *  O motivo é que temos um vetor de char como parâmetro da função FiltrarData e queríamos passar
-   *  paciente[i].dataCadastro que é um ponteiro de chars.
   */
+
+
 
   int quantidade_casos_intervalo = 0;
   for (int i = 0; i < 202363; i++)
@@ -569,13 +607,15 @@ void Item_4(tData data_menor, tData data_maior)
   char auxiliarPasta[20] = {'\0'};
   strcpy(auxiliarPasta, destinoPasta);
   strcat(auxiliarPasta, "item4.txt");
-  item4 = fopen(auxiliarPasta, "wb");
+  item4 = fopen(auxiliarPasta, "w+");
 
   fprintf(item4, "- Total de pessoas: %d", quantidade_casos_intervalo);
 
   fclose(item4);
   item4 = NULL;
 }
+
+
 
 void Item_5(int top_n, tData data_menor, tData data_maior)
 {
