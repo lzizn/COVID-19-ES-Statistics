@@ -6,8 +6,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-
-
 /*
  * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos,
  * de certa forma, que o próprio código já está bem autoexplicativo.
@@ -16,8 +14,6 @@
  * todos os itens, o mesmo aconteceria para a pasta de destino e o array de cidades. Assim, achamos
  * melhor deixar como variáveis globais.
 */
-
-
 
 #define tamanho 202362
 
@@ -50,12 +46,9 @@ typedef struct
   int dias;
 } tData;
 
-
 tPaciente pacientes[tamanho];
 tCidadeseCasos todasCidades[78];
 char destinoPasta[10];
-
-
 
 /* O cabeçalho de funções está organizado na ordem:
  *    1 - entrada de dados,
@@ -65,13 +58,11 @@ char destinoPasta[10];
  * Explicaremos mais detalhadamente sobre as funções no bloco de código de cada uma;
  */
 
-
-
-FILE *LerDados(FILE *dados);
+FILE *LerDados(FILE *dados); //Item 1
 void LerPacientes(FILE *dados);
 void LerCidadesContarCasos();
 
-tData FiltrarData(char data[11]);
+tData FiltrarData(char data[11]); // Item 2
 int DataEstaNoIntervalo(tData data_menor, tData data_maior, tData dataAComparar);
 int TemComorbidade(tPaciente paciente);
 
@@ -87,84 +78,58 @@ int main()
   FILE *dados;
   dados = LerDados(dados);
 
-
   /*  O cabeçalho inutil */
-
 
   char cabecalhoInutil[201];
   fgets(cabecalhoInutil, 201, dados);
-
 
   /*  "Preparando o terreno" para os itens, lendo o arquivo csv e armazenando na
    *  variável global de pacientes.
    *  e após isso guardando cidades e  as informações de quantidade de casos.
   */
 
-
   LerPacientes(dados);
 
   LerCidadesContarCasos();
-
 
   /*  Onde a mágica começa:
    *  Lemos o destino do arquivo e assim a variável global está pronta para ser usada.
   */
 
-
   fgets(destinoPasta, 10, stdin);
   mkdir(destinoPasta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
-
-  /*  O terceiro item: */
-
-
-  int quantidadeMinCasos = 500;
+  int quantidadeMinCasos;
   scanf("%d", &quantidadeMinCasos);
   Item_3(quantidadeMinCasos);
-
 
   /* Preparando o terreno para os itens que precisam de data,
    * reutilizaremos essas variáveis em todo os itens necessários.
    */
 
-
   tData data_menor, data_maior;
-
-
-  /*  O quarto item: */
-
 
   scanf("%4d-%2d-%2d ", &data_menor.ano, &data_menor.mes, &data_menor.dias);
   scanf("%4d-%2d-%2d ", &data_menor.ano, &data_maior.mes, &data_maior.dias);
   Item_4(data_menor, data_maior);
 
-
-  /*  O quinto item: */
-
-
   unsigned int top_n;
   scanf("%d %4d-%2d-%2d %4d-%2d-%2d ", &top_n, &data_menor.ano, &data_menor.mes, &data_menor.dias, &data_maior.ano, &data_maior.mes, &data_maior.dias);
   Item_5(top_n, data_menor, data_maior);
-
-
-  /*  O sexto item: */
-
 
   char municipio[31];
   fgets(municipio, 31, stdin);
   Item_6(municipio);
 
-
-  /*  O sétimo item: */
-
-
   scanf("%4d-%2d-%2d ", &data_maior.ano, &data_menor.mes, &data_menor.dias);
   scanf("%4d-%2d-%2d", &data_maior.ano, &data_maior.mes, &data_maior.dias);
   Item_7(data_menor, data_maior);
 
-
-  /*  O Finalizando graças a Deus obrigado família soagradece. */
-
+  /* E assim nós terminamos esse trabalho com muita fé no divino.
+   * 
+   * Pedimos perdão se algum pedaço de código não ficou claro, tentamos utilizar ao máximo
+   * boas práticas e achamos que também fizemos um bom trabalho na componentização das funções.
+   */
 
   fclose(dados);
   dados = NULL;
@@ -172,11 +137,9 @@ int main()
   return 0;
 }
 
-
-
 FILE *LerDados(FILE *dados)
 {
-  
+
   dados = fopen("covid19ES.csv", "r");
   if (dados == NULL)
   {
@@ -184,14 +147,11 @@ FILE *LerDados(FILE *dados)
     exit(1);
   }
   return dados;
+  dados = NULL;
 }
-
-
 
 void LerPacientes(FILE *dados)
 {
-
-
 
   /*  Nossa forma de leitura de pacientes é via um contador de vírgulas.
    *  
@@ -212,26 +172,20 @@ void LerPacientes(FILE *dados)
    *    aspasEstaoAtivas -> verifica se achou aspas, usado para "ignorar" as vírgulas da idade (não aumentar o contador_vírgulas)
   */
 
-
-
   char dadosPaciente[161];
   int contador_virgulas = 0, indice = 0, i = 0, aspasEstaoAtivas = 0, j = 0;
 
   while (fgets(dadosPaciente, 160, dados) != NULL)
   {
 
-
     /*  Redefinindo as variáveis "controladoras" guardar o paciente anterior e pegar a nova linha de dados. */
-
 
     i = 0, indice = 0, contador_virgulas = 0, aspasEstaoAtivas = 0;
 
     while (dadosPaciente[i] != '\n')
     {
 
-
       /*  Controlador de aspas e vírgulas */
-
 
       if (dadosPaciente[i] == ',' && aspasEstaoAtivas == 0)
       {
@@ -253,9 +207,7 @@ void LerPacientes(FILE *dados)
         }
       }
 
-
       /* Com esses if else's nós pegamos todos os chars */
-
 
       if (contador_virgulas == 0)
       {
@@ -306,19 +258,15 @@ void LerPacientes(FILE *dados)
         pacientes[j].ficouInternado[indice] = dadosPaciente[i];
       }
 
-
       /*  Aqui o respectivo indice do campo do paciente já recebeu o dadosPaciente[i]
        *  e nós iteramos as duas variáveis
       */
-
 
       i++;
       indice++;
     }
 
-
     /* Terminando de ler o pacientes[j] ele itera o j e começa a ler pacientes[j+1] */
-
 
     j++;
   }
@@ -327,36 +275,34 @@ void LerPacientes(FILE *dados)
   dados = NULL;
 }
 
-
-
 void LerCidadesContarCasos()
 {
 
-
-
-  /*  Essa função itera todo o vetor de pacientes e já guarda todos os casos confirmados
+  /*    Essa função itera todo o vetor de pacientes e já guarda todos os casos confirmados
    *  e seus respectivos municípios.
    * 
-   *  Primeiro criamos uma variável chamada "indice" que será responsável por verificar a quantidade
-   *  de cidades que já foram guardadas.
+   *    Primeiro criamos uma variável chamada "quantidadeCidadesGuardadas" que será responsável por verificar a quantidade
+   *  de cidades que já foram cadastradas no vetor de cidades.
    * 
-   *  Em seguida setamos como 0 a propriedade quantidade_casos do vetor "todasCidades[78]" a fim
-   *  de iterarmos essa posteriormente.
+   *    Em seguida setamos como 0 a propriedade quantidade_casos de todo o  vetor "todasCidades[78]" a fim
+   *  de utilizarmos operador unário posteriormente.
    * 
-   *  Após isso iteramos o vetor e para cada paciente verificamos se o caso é confirmado
+   *    Após isso iteramos o vetor e para cada paciente verificamos se o caso é confirmado
    *  usando a função strcmp, se não é confirmado pulamos para a próxima iteração,
    *  se é confirmado criamos uma variável chamada "ja_Esta_Cadastrado" com valor 0 ("não"),
    *  e iteramos um for j = 0; j < quantidadesCidadesGuardadas.
+   * 
    *  Dentro desse for comparamos com strcmp se a cidade do paciente é igual à alguma
-   *  já existente no vetor; Se sim, setamos a variável já_Esta_Cadastrado para um ("sim"),
+   *  já existente no vetor; 
+   * 
+   *  Se sim, setamos a variável já_Esta_Cadastrado para um ("sim"),
    *  iteramos a quantidade de casos desse muncípio e quebramos o for.
+   * 
    *  Se não, fazemos uma cópia do municipio do paciente para a propriedade municipio do todasCidades e
    *  iteramos a quantidade_casos do município criado e também a quantidadeDeCidadesGuardadas.
    * 
    *  Dessa forma, ao final, teremos 78 municípios cadastrados com suas respectivas quantidade de casos.
   */
-
-
 
   int quantidadesCidadesGuardadas = 0;
 
@@ -392,14 +338,12 @@ void LerCidadesContarCasos()
   }
 }
 
-
-
 tData FiltrarData(char data[11])
 {
 
   /*  Essa função é utilizada somente para separar os meses e os dias de um array de char dados.
 
-   *  Criamos uma string auxiliar que guarda os pedaços de string dados pela função
+   *    Criamos uma string auxiliar que guarda os pedaços de string dados pela função
    *  strtok passando como parametro os traços('-') das strings de datas. Após isso
    *  transformamos a string em inteiro usando a função atoi e armazenamos nas propriedades
    *  "mes" e "dias" do nosso tipo definido tData.
@@ -412,36 +356,44 @@ tData FiltrarData(char data[11])
 
   tData dataFiltrada;
 
-  char *aux;
+  char *aux = "\0";
   aux = strtok(auxData, "-");
-  if(aux != NULL){ dataFiltrada.ano = atoi(aux);}
+  if (aux != NULL)
+  {
+    dataFiltrada.ano = atoi(aux);
+  }
 
   aux = strtok(NULL, "-");
-  if(aux != NULL){ dataFiltrada.mes = atoi(aux);}
+  if (aux != NULL)
+  {
+    dataFiltrada.mes = atoi(aux);
+  }
 
   aux = strtok(NULL, "-");
-  if(aux != NULL){ dataFiltrada.dias = atoi(aux);}
+  if (aux != NULL)
+  {
+    dataFiltrada.dias = atoi(aux);
+  }
 
   return dataFiltrada;
 }
-
-
 
 int DataEstaNoIntervalo(tData data_menor, tData data_maior, tData dataAComparar)
 {
 
   /*  
-   * Essa é uma função utilitária usada para verificar se uma data está dentro de um
+   *    Essa é uma função utilitária usada para verificar se uma data está dentro de um
    *  intervalo de datas. Se sim, retorna 1, se não, retorna 0.
    * 
    *  A ideia é bem simples, utilizamos somente if e else.
    * 
-   *  Fazemos verificações básicas como dataAComparar = dataMaior = dataMenor etc.
+   *    Fazemos verificações básicas como dataAComparar = dataMaior = dataMenor etc.
    *  A engenhosidade dessa função está na forma que verificamos se a Data está dentro de um
    *  intervalo de meses diferentes. Criamos uma média entre os meses e verificamos se a data
    *  está dentro do intervalo
    *  dataMenor <= data <= mediaEntreMeses ou mediaEntreMeses <=data <= dataMaior
-   *  Com isso conseguimos verificar todas as datas.
+   *  
+   *  Dessa forma conseguimos verificar todas as datas.
   */
 
   unsigned int media_entre_meses = (data_maior.mes + data_menor.mes) / 2;
@@ -479,12 +431,10 @@ int DataEstaNoIntervalo(tData data_menor, tData data_maior, tData dataAComparar)
   return 0;
 }
 
-
-
 int TemComorbidade(tPaciente paciente)
 {
 
-  /* Essa é uma função utilitária que verifica se o paciente tem qualquer comorbidade,
+  /*  Essa é uma função utilitária que verifica se o paciente tem qualquer comorbidade,
    * se tem, retorna 1, se não, retorna 0.
    * 
    * Criamos if's aninhados, nada de novo sob o sol.
@@ -514,17 +464,17 @@ int TemComorbidade(tPaciente paciente)
   return 1;
 }
 
-
-
 void Item_3(int quantidade_min_casos)
 {
 
-  /*   Nessa função implantamos um algoritmo básico de ordenação que itera cada municipio e compara ele a todos do vetor
-  *   de cidades, utilizando a função strcmp verificamos se o município1 tem o valor maior(soma dos valores de cada char em unicode)
-  *   que outro município2, se sim, logo municipio2 tem valor menor, assim trocamos toda a tCidadeseCasos de dado de lugar,
+  /*  
+  *     Nessa função implantamos um algoritmo de ordenação que itera cada municipio e compara ele a todos do vetor
+  *   de cidades.
+  *     Utilizando a função strcmp verificamos se o município1 tem o valor maior(soma dos valores de cada char em unicode)
+  *   que outro município2, se sim, logo municipio2 tem valor menor, assim trocamos todo o struct de lugar (índice do vetor),
   *   utilizando um auxiliar. Assim ao final teremos o vetor organizado em ordem alfabética.
   * 
-  *   Após organizar em ordem alfabética, só printamos no arquivo se a cidade tiver o número de casos estritamente maior
+  *     Após organizar em ordem alfabética, só printamos no arquivo se a cidade tiver o número de casos estritamente maior
   *   do que o número lido no arquivo de entrada.
  */
 
@@ -543,11 +493,12 @@ void Item_3(int quantidade_min_casos)
     }
   }
 
-  /* Criamos um vetor de char auxiliar e copiamos a pasta de destino da entrada e concatenamos com
+  /* 
+   *  Criamos um vetor de char auxiliar e copiamos a pasta de destino da entrada e concatenamos com
    * o nome de saída desse item 3 ("item3.txt"). Depois passamos esse vetor de char auxiliar para o fopen e criamos a
    * pasta e o arquivo.
    *
-   * Esse mesmo padrão se repete para todos os itens, não muda absolutamente nada além do nome do arquivo.
+   * Esse mesmo padrão se repete para todos os itens.
   */
 
   FILE *item3;
@@ -556,7 +507,8 @@ void Item_3(int quantidade_min_casos)
   strcat(auxiliarPasta, "item3.txt");
   item3 = fopen(auxiliarPasta, "w+");
 
-  if(item3 == NULL){
+  if (item3 == NULL)
+  {
     exit(1);
   }
 
@@ -572,23 +524,17 @@ void Item_3(int quantidade_min_casos)
   item3 = NULL;
 }
 
-
-
 void Item_4(tData data_menor, tData data_maior)
 {
 
-
-
   /*  
-   *  Nesse item 4 nós criamos uma variável para armazenar a quantidade de casos no intervalo e
+   *    Nesse item 4 nós criamos uma variável para armazenar a quantidade de casos no intervalo e
    *  verificamos utilizando nossa função "DataEstaNoIntervalo" se a data do paciente está dentro
    *  do intervalo de datas que é dado como entrada , se ela retornar 1 (sim), verificamos com a função strcmp se o paciente
    *  tem classificação como Confirmado, se sim, aumentamos o a quant_casos_intervalo.
    * 
    *  Ao final dela printamos essa quantidade de casos do intervalo.
   */
-
-
 
   int quantidade_casos_intervalo = 0;
   for (int i = 0; i < 202363; i++)
@@ -615,10 +561,24 @@ void Item_4(tData data_menor, tData data_maior)
   item4 = NULL;
 }
 
-
-
 void Item_5(int top_n, tData data_menor, tData data_maior)
 {
+
+  /*  
+   *  Primeiro nós resetamos a quantidade de casos do nosso vetor global todasCidades[78] pois precisamos
+   * inserir novos dados nele.
+   * 
+   *  Fazemos um loop em todos os pacientes e para cada paciente verificamos se ele é um caso Confirmado,
+   * se sim, verificamos se ele está dentro do intervalo de datas dado, caso esteja, fazemos um loop para iterarmos
+   * as cidades e quando o municipio do paciente bate com o municipio iterado, aumentamos a propriedade quantidade_casos
+   * desse mesmo município.
+   *  Dessa forma conseguimos verificar a quantidade de casos entre as datas em cada municipio.
+   *  
+   *    Após isso utilizando uma variável auxiliar, usamos um algoritmo básico para ordenarmos o vetor de
+   *  cidades de forma decrescente.
+   */
+
+  tData dataCadastro;
 
   for (int i = 0; i < 78; i++)
   {
@@ -627,9 +587,9 @@ void Item_5(int top_n, tData data_menor, tData data_maior)
 
   for (int i = 0; i < 202363; i++)
   {
-    tData dataCadastro = FiltrarData(pacientes[i].dataCadastro);
     if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
     {
+      dataCadastro = FiltrarData(pacientes[i].dataCadastro);
       if (DataEstaNoIntervalo(data_menor, data_maior, dataCadastro) == 1)
       {
         for (int j = 0; j < 78; j++)
@@ -676,6 +636,23 @@ void Item_5(int top_n, tData data_menor, tData data_maior)
 
 void Item_6(char nome_municipio[31])
 {
+
+  /*
+   *  Primeiro setamos todos os caracteres do municipio de entrada como maiusculas e trocamos o \n por \0, pois
+   * a forma que usamos para pegar esse dado estava vindo o \n. 
+   * 
+   *  Após isso verificamos se a entrada do municipio é "TODAS" ou se é um municipio específico e tomamos caminhos
+   * diferentes a partir disso. A ideia dos 2 caminhos é a mesma. Caso a entrada for for "TODAS", nós pegamos os dados
+   * necessários de todos os municípios. Por outro lado, se a entrada não for "TODAS", nós usamos um if a mais que verifica
+   * se a cidade do paciente é igual à do município em questão e só pegamos os dados desse município. 
+   * 
+   *  A forma de tratamento desses dados foi via comparação de strings usando a strcmp, usando if's aninhados
+   * nós verificamosse a classificação do paciente é Confirmada, se ficou internado, se veio à obito e ficou internado,
+   * se veio à óbito sem ficar internado. 
+   * 
+   *  Ao final criamos as variáveis responsáveis por guardar essas porcentagens, fazemos os cálculos de porcentagens
+   * e printamos de acordo com o padrão de saída.
+   */
 
   int cont_confirmados = 0, quant_internadas = 0, quant_morreram = 0, quant_internadas_e_morreram = 0;
 
@@ -767,18 +744,47 @@ void Item_6(char nome_municipio[31])
 void Item_7(tData data_menor, tData data_maior)
 {
 
+  /*
+   *  Utilizando if's aninhados nós verificamos algumas condições necessárias.
+   * Primeiro verificamos se a data de cadastro do paciente está dentro do intervalo dado,
+   * se sim, verificamos se ele é um caso confirmado, daí, vemos se ele veio à óbito, assim,
+   * conseguimos todos os pacientes dentro do intervalo que são confirmados e vieram à óbito.
+   * 
+   *  Com isso em mente, pegamos a idadeNaDataDeNotificacao de cada paciente e damos uma
+   * filtradinha no primeiro elemento da idade, pois estava vindo as aspas do arquivo.
+   * 
+   *  Após isso, para conseguir a idade do paciente em inteiro, criamos um ponteiro de char
+   * auxiliar que recebe o token retornado pela função strtok onde passamos como parametro um espaço, 
+   * pois como a entrada de idade é no formato "27 anos, 6 meses, 1 dias", verifica-se o padrão
+   * de espaço após o primeiro número, dessa forma só pegamos o número que representa a idade.
+   * 
+   * Agora temos o número e precisamos passar ele para inteiro, usamos a função atoi().
+   * 
+   * Verificamos que existem pacientes com idade -1 (???) e assim criamos um if que verifica
+   * se a idade é maior que 0, se sim, somamos o total de idades e guardamos essa idade em um vetor
+   * a fim de utilizar esses dados no cálculo da média de idade e o desvio padrão.
+   * 
+   * Iteramos a quantidade de mortos e verificamos se o paciente tem qualquer comorbidade usando
+   * nossa função TemComorbidade(tPaciente paciente), se não tem nenhuma, iteramos a variável
+   * morreram_sem_comorbidade.
+   * 
+   * Dessa forma temos todos os dados necessários para fazer os cálculos para esse item,
+   * então tiramos a média dividindo o total_idades pela quantidade de mortos e usamos um for
+   * que funciona como o somatório do desvio padrão e depois tiramos a raíz na tranquilidade de buda.
+   * 
+  */
+
   int quant_mortos = 0, total_idade = 0, morreram_sem_comorbidade = 0;
   int idade_pacientes_confirmados[10000];
 
   for (int i = 0; i < 202363; i++)
   {
-    if (strcmp(pacientes[i].dataObito, "0000-00-00") != 0)
+    tData dataCadastro = FiltrarData(pacientes[i].dataCadastro);
+    if (DataEstaNoIntervalo(data_menor, data_maior, dataCadastro) == 1)
     {
       if (strcmp(pacientes[i].classificacao, "Confirmados") == 0)
       {
-
-        tData dataCadastro = FiltrarData(pacientes[i].dataCadastro);
-        if (DataEstaNoIntervalo(data_menor, data_maior, dataCadastro) == 1)
+        if (strcmp(pacientes[i].dataObito, "0000-00-00") != 0)
         {
 
           pacientes[i].idadeNaDataNotificacao[0] = '0';
@@ -822,4 +828,6 @@ void Item_7(tData data_menor, tData data_maior)
   item7 = fopen(auxiliarPasta, "wb");
   fprintf(item7, "A media e desvio padrao da idade: %.3lf -- %.3lf\n", media_idades, desvioPadrao);
   fprintf(item7, "A %% de pessoas que morreram sem comorbidade: %.3lf%%", porcentagem_morreram_sem_comorbidade);
+
+  fclose(item7);
 }
