@@ -1,3 +1,15 @@
+/*
+ * Autores;
+ *    - Laian Braum (2020101796)
+ *    - Ryan COsta (2020101735)
+ * 
+ *  Repositório utilizado para versionamento:
+ *  (privado até finalizar as avaliações):
+ *    https://github.com/laianbraum/Trabalho-pratico-Programacao-II
+ * 
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,16 +18,15 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-/*
- * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos,
- * de certa forma, que o próprio código já está bem autoexplicativo.
- * 
- * Criamos variáveis globais pois teríamos que passar tPacientes pacientes[tamanho] para basicamente
- * todos os itens, o mesmo aconteceria para a pasta de destino e o array de cidades. Assim, achamos
- * melhor deixar como variáveis globais.
-*/
 
-#define tamanho 202362
+/*
+ * Tipos Definidos:
+ *  - tCidadeseCasos -> guardar as Cidades e a quantidade de casos de cada uma
+ *  - tPaciente -> guardar todas as informações de cada paciente (utilizamos somente strings)
+ *  - tData -> usado para armazenar as Datas filtradas (de string para tData).
+ */
+
+
 
 typedef struct
 {
@@ -46,9 +57,24 @@ typedef struct
   int dias;
 } tData;
 
+
+/*
+ * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos,
+ * de certa forma, que o próprio código já está bem autoexplicativo.
+ * 
+ * Criamos variáveis globais pois teríamos que repetir o mesmo parametro diversas
+ * vezes para as funções, então olhando para as boas práticas de código, achamos mais ideal
+ * criar três variáveis globais, afinal todos os itens giram em torno delas.
+ * 
+*/
+
+
+#define tamanho 202362
+
 tPaciente pacientes[tamanho];
 tCidadeseCasos todasCidades[78];
 char destinoPasta[10];
+
 
 /* O cabeçalho de funções está organizado na ordem:
  *    1 - entrada de dados,
@@ -58,7 +84,8 @@ char destinoPasta[10];
  * Explicaremos mais detalhadamente sobre as funções no bloco de código de cada uma;
  */
 
-FILE *LerDados(FILE *dados); //Item 1
+
+FILE *LerDados(FILE *dados);
 void LerPacientes(FILE *dados);
 void LerCidadesContarCasos();
 
@@ -78,19 +105,27 @@ int main()
   FILE *dados;
   dados = LerDados(dados);
 
-  /*  O cabeçalho inutil */
+  /* Lendo a primeira linha do arquivo e o \n */
 
-  char cabecalhoInutil[201];
-  fgets(cabecalhoInutil, 201, dados);
+  fscanf(dados, "%*[^\n]s");
+  fgetc(dados);
+
 
   /*  "Preparando o terreno" para os itens, lendo o arquivo csv e armazenando na
    *  variável global de pacientes.
    *  e após isso guardando cidades e  as informações de quantidade de casos.
   */
 
+
   LerPacientes(dados);
 
   LerCidadesContarCasos();
+
+
+  //Como já finalizamos com o arquivo csv, fechamos ele aqui mesmo.
+
+  fclose(dados);
+
 
   /*  Onde a mágica começa:
    *  Lemos o destino do arquivo e assim a variável global está pronta para ser usada.
@@ -98,6 +133,9 @@ int main()
 
   fgets(destinoPasta, 10, stdin);
   mkdir(destinoPasta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+
+  /*  O terceiro item: */
 
   int quantidadeMinCasos;
   scanf("%d", &quantidadeMinCasos);
@@ -109,17 +147,25 @@ int main()
 
   tData data_menor, data_maior;
 
+  /*  O quarto item: */
+
   scanf("%4d-%2d-%2d ", &data_menor.ano, &data_menor.mes, &data_menor.dias);
   scanf("%4d-%2d-%2d ", &data_menor.ano, &data_maior.mes, &data_maior.dias);
   Item_4(data_menor, data_maior);
+
+  /*  O quinto item: */
 
   unsigned int top_n;
   scanf("%d %4d-%2d-%2d %4d-%2d-%2d ", &top_n, &data_menor.ano, &data_menor.mes, &data_menor.dias, &data_maior.ano, &data_maior.mes, &data_maior.dias);
   Item_5(top_n, data_menor, data_maior);
 
+  /*  O sexto item: */
+
   char municipio[31];
   fgets(municipio, 31, stdin);
   Item_6(municipio);
+
+  /*  O sétimo item: */
 
   scanf("%4d-%2d-%2d ", &data_maior.ano, &data_menor.mes, &data_menor.dias);
   scanf("%4d-%2d-%2d", &data_maior.ano, &data_maior.mes, &data_maior.dias);
@@ -131,15 +177,12 @@ int main()
    * boas práticas e achamos que também fizemos um bom trabalho na componentização das funções.
    */
 
-  fclose(dados);
-  dados = NULL;
-
   return 0;
 }
 
 FILE *LerDados(FILE *dados)
 {
-
+  
   dados = fopen("covid19ES.csv", "r");
   if (dados == NULL)
   {
@@ -147,7 +190,6 @@ FILE *LerDados(FILE *dados)
     exit(1);
   }
   return dados;
-  dados = NULL;
 }
 
 void LerPacientes(FILE *dados)
@@ -185,7 +227,9 @@ void LerPacientes(FILE *dados)
     while (dadosPaciente[i] != '\n')
     {
 
+
       /*  Controlador de aspas e vírgulas */
+
 
       if (dadosPaciente[i] == ',' && aspasEstaoAtivas == 0)
       {
@@ -207,7 +251,9 @@ void LerPacientes(FILE *dados)
         }
       }
 
+
       /* Com esses if else's nós pegamos todos os chars */
+
 
       if (contador_virgulas == 0)
       {
@@ -258,22 +304,26 @@ void LerPacientes(FILE *dados)
         pacientes[j].ficouInternado[indice] = dadosPaciente[i];
       }
 
+
       /*  Aqui o respectivo indice do campo do paciente já recebeu o dadosPaciente[i]
        *  e nós iteramos as duas variáveis
       */
+
 
       i++;
       indice++;
     }
 
+
     /* Terminando de ler o pacientes[j] ele itera o j e começa a ler pacientes[j+1] */
+
 
     j++;
   }
 
-  fclose(dados);
-  dados = NULL;
 }
+
+
 
 void LerCidadesContarCasos()
 {
@@ -342,8 +392,7 @@ tData FiltrarData(char data[11])
 {
 
   /*  Essa função é utilizada somente para separar os meses e os dias de um array de char dados.
-
-   *    Criamos uma string auxiliar que guarda os pedaços de string dados pela função
+   *  Criamos uma string auxiliar que guarda os pedaços de string dados pela função
    *  strtok passando como parametro os traços('-') das strings de datas. Após isso
    *  transformamos a string em inteiro usando a função atoi e armazenamos nas propriedades
    *  "mes" e "dias" do nosso tipo definido tData.
@@ -374,7 +423,6 @@ tData FiltrarData(char data[11])
   {
     dataFiltrada.dias = atoi(aux);
   }
-
   return dataFiltrada;
 }
 
@@ -507,11 +555,6 @@ void Item_3(int quantidade_min_casos)
   strcat(auxiliarPasta, "item3.txt");
   item3 = fopen(auxiliarPasta, "w+");
 
-  if (item3 == NULL)
-  {
-    exit(1);
-  }
-
   for (int i = 0; i < 78; i++)
   {
     if (todasCidades[i].quantidade_casos > quantidade_min_casos)
@@ -521,7 +564,6 @@ void Item_3(int quantidade_min_casos)
   }
 
   fclose(item3);
-  item3 = NULL;
 }
 
 void Item_4(tData data_menor, tData data_maior)
@@ -558,7 +600,6 @@ void Item_4(tData data_menor, tData data_maior)
   fprintf(item4, "- Total de pessoas: %d", quantidade_casos_intervalo);
 
   fclose(item4);
-  item4 = NULL;
 }
 
 void Item_5(int top_n, tData data_menor, tData data_maior)
@@ -631,13 +672,12 @@ void Item_5(int top_n, tData data_menor, tData data_maior)
   }
 
   fclose(item5);
-  item5 = NULL;
 }
 
 void Item_6(char nome_municipio[31])
 {
 
-  /*
+    /*
    *  Primeiro setamos todos os caracteres do municipio de entrada como maiusculas e trocamos o \n por \0, pois
    * a forma que usamos para pegar esse dado estava vindo o \n. 
    * 
@@ -738,13 +778,12 @@ void Item_6(char nome_municipio[31])
   fprintf(item6, "- A %% de pessoas que ficaram internadas e morreram: %.3f%%", porcentagem_internados_e_morreram);
 
   fclose(item6);
-  item6 = NULL;
 }
 
 void Item_7(tData data_menor, tData data_maior)
 {
 
-  /*
+    /*
    *  Utilizando if's aninhados nós verificamos algumas condições necessárias.
    * Primeiro verificamos se a data de cadastro do paciente está dentro do intervalo dado,
    * se sim, verificamos se ele é um caso confirmado, daí, vemos se ele veio à óbito, assim,
@@ -825,7 +864,7 @@ void Item_7(tData data_menor, tData data_maior)
   char auxiliarPasta[20];
   strcpy(auxiliarPasta, destinoPasta);
   strcat(auxiliarPasta, "item7.txt");
-  item7 = fopen(auxiliarPasta, "wb");
+  item7 = fopen(auxiliarPasta, "w+");
   fprintf(item7, "A media e desvio padrao da idade: %.3lf -- %.3lf\n", media_idades, desvioPadrao);
   fprintf(item7, "A %% de pessoas que morreram sem comorbidade: %.3lf%%", porcentagem_morreram_sem_comorbidade);
 
