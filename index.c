@@ -1,3 +1,14 @@
+/*
+ *  Autores:
+ *    - Laian Braum (2020101796)
+ *    - Ryan Costa (2020101735)
+ * 
+ *  Repositório utilizado para versionamento
+ *  (privado até finalizar as avaliações):
+ *    https://github.com/laianbraum/Trabalho-pratico-Programacao-II
+ *
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,15 +18,11 @@
 #include <sys/types.h>
 
 /*
- * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos,
- * de certa forma, que o próprio código já está bem autoexplicativo.
- * 
- * Criamos variáveis globais pois teríamos que passar tPacientes pacientes[tamanho] para basicamente
- * todos os itens, o mesmo aconteceria para a pasta de destino e o array de cidades. Assim, achamos
- * melhor deixar como variáveis globais.
-*/
-
-#define tamanho 202362
+ * Tipos Definidos:
+ *  - tCidadeseCasos -> guardar as Cidades e a quantidade de casos de cada uma
+ *  - tPaciente -> guardar todas as informações de cada paciente (utilizamos somente strings)
+ *  - tData -> usado para armazenar as Datas filtradas (de string para tData).
+ */
 
 typedef struct
 {
@@ -46,16 +53,28 @@ typedef struct
   int dias;
 } tData;
 
+/*
+ * As variáveis e funções estão com nomes intuitivos e descritivos, então consideramos,
+ * de certa forma, que o próprio código já está bem autoexplicativo.
+ * 
+ * Criamos variáveis globais pois teríamos que repetir o mesmo parametro diversas
+ * vezes para as funções, então olhando para as boas práticas de código, achamos mais ideal
+ * criar três variáveis globais, afinal todos os itens giram em torno delas.
+ * 
+*/
+
+#define tamanho 202362
+
 tPaciente pacientes[tamanho];
 tCidadeseCasos todasCidades[78];
 char destinoPasta[10];
 
-/* O cabeçalho de funções está organizado na ordem:
+/*  O cabeçalho de funções está organizado na ordem:
  *    1 - entrada de dados,
- *    2 - utilitárias(reaproveitar),
- *    3 - os itens em si (algoritmos e saída de dados);
+ *    2 - utilitárias,
+ *    3 - os itens em si (algoritmos e saídas de dados);
  *
- * Explicaremos mais detalhadamente sobre as funções no bloco de código de cada uma;
+ *  Explicaremos mais detalhadamente sobre as funções no bloco de código de cada uma;
  */
 
 FILE *LerDados(FILE *dados); //Item 1
@@ -83,9 +102,10 @@ int main()
   char cabecalhoInutil[201];
   fgets(cabecalhoInutil, 201, dados);
 
-  /*  "Preparando o terreno" para os itens, lendo o arquivo csv e armazenando na
-   *  variável global de pacientes.
-   *  e após isso guardando cidades e  as informações de quantidade de casos.
+  /*  "Preparando o terreno" para os itens posteriores, lendo
+   * o arquivo csv e armazenando na variável global de pacientes (Item 1).
+   * 
+   * Após isso armazenando cada cidade e as informações de quantidade de casos (em todo o período).
   */
 
   LerPacientes(dados);
@@ -93,11 +113,13 @@ int main()
   LerCidadesContarCasos();
 
   /*  Onde a mágica começa:
-   *  Lemos o destino do arquivo e assim a variável global está pronta para ser usada.
+   *  Lemos o destino do arquivo e assim a variável global destinoPasta está pronta para ser usada.
   */
 
   fgets(destinoPasta, 10, stdin);
   mkdir(destinoPasta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+  // Item 3
 
   int quantidadeMinCasos;
   scanf("%d", &quantidadeMinCasos);
@@ -109,17 +131,25 @@ int main()
 
   tData data_menor, data_maior;
 
+  // Item 4
+
   scanf("%4d-%2d-%2d ", &data_menor.ano, &data_menor.mes, &data_menor.dias);
   scanf("%4d-%2d-%2d ", &data_menor.ano, &data_maior.mes, &data_maior.dias);
   Item_4(data_menor, data_maior);
+
+  // Item 5
 
   unsigned int top_n;
   scanf("%d %4d-%2d-%2d %4d-%2d-%2d ", &top_n, &data_menor.ano, &data_menor.mes, &data_menor.dias, &data_maior.ano, &data_maior.mes, &data_maior.dias);
   Item_5(top_n, data_menor, data_maior);
 
+  // Item 6
+
   char municipio[31];
   fgets(municipio, 31, stdin);
   Item_6(municipio);
+
+  // Item 7
 
   scanf("%4d-%2d-%2d ", &data_maior.ano, &data_menor.mes, &data_menor.dias);
   scanf("%4d-%2d-%2d", &data_maior.ano, &data_maior.mes, &data_maior.dias);
@@ -385,9 +415,10 @@ int DataEstaNoIntervalo(tData data_menor, tData data_maior, tData dataAComparar)
    *    Essa é uma função utilitária usada para verificar se uma data está dentro de um
    *  intervalo de datas. Se sim, retorna 1, se não, retorna 0.
    * 
-   *  A ideia é bem simples, utilizamos somente if e else.
+   *  A ideia é bem simples, utilizamos somente condicionais.
    * 
-   *    Fazemos verificações básicas como dataAComparar = dataMaior = dataMenor etc.
+   *  Primeiro fazemos verificações básicas como dataAComparar == dataMaior == dataMenor etc.
+   * 
    *  A engenhosidade dessa função está na forma que verificamos se a Data está dentro de um
    *  intervalo de meses diferentes. Criamos uma média entre os meses e verificamos se a data
    *  está dentro do intervalo
@@ -625,9 +656,13 @@ void Item_5(int top_n, tData data_menor, tData data_maior)
   strcat(auxiliarPasta, "item5.txt");
   item5 = fopen(auxiliarPasta, "wb");
 
-  for (int i = 0; i < top_n; i++)
+  if (!(todasCidades[0].quantidade_casos == 0))
   {
-    fprintf(item5, "- %s: %d casos\n", todasCidades[i].municipio, todasCidades[i].quantidade_casos);
+    for (int i = 0; i < top_n; i++)
+    {
+
+      fprintf(item5, "- %s: %d casos\n", todasCidades[i].municipio, todasCidades[i].quantidade_casos);
+    }
   }
 
   fclose(item5);
@@ -809,25 +844,34 @@ void Item_7(tData data_menor, tData data_maior)
     }
   }
 
-  double media_idades = total_idade * 1.0 / quant_mortos * 1.0;
-  double porcentagem_morreram_sem_comorbidade = (morreram_sem_comorbidade * 100.0 / quant_mortos * 1.0);
-
-  double somatorioDesvio = 0;
-
-  for (int i = 0; i < quant_mortos; i++)
-  {
-    somatorioDesvio += pow((idade_pacientes_confirmados[i] - media_idades), 2);
-  }
-
-  double desvioPadrao = sqrt(somatorioDesvio / (quant_mortos - 1) * 1.0);
-
   FILE *item7;
   char auxiliarPasta[20];
   strcpy(auxiliarPasta, destinoPasta);
   strcat(auxiliarPasta, "item7.txt");
   item7 = fopen(auxiliarPasta, "wb");
-  fprintf(item7, "A media e desvio padrao da idade: %.3lf -- %.3lf\n", media_idades, desvioPadrao);
-  fprintf(item7, "A %% de pessoas que morreram sem comorbidade: %.3lf%%", porcentagem_morreram_sem_comorbidade);
+
+  if (!(quant_mortos == 0))
+  {
+    double media_idades = total_idade * 1.0 / quant_mortos * 1.0;
+    double porcentagem_morreram_sem_comorbidade = (morreram_sem_comorbidade * 100.0 / quant_mortos * 1.0);
+
+    double somatorioDesvio = 0;
+
+    for (int i = 0; i < quant_mortos; i++)
+    {
+      somatorioDesvio += pow((idade_pacientes_confirmados[i] - media_idades), 2);
+    }
+
+    double desvioPadrao = sqrt(somatorioDesvio / (quant_mortos - 1) * 1.0);
+
+    fprintf(item7, "A media e desvio padrao da idade: %.3lf -- %.3lf\n", media_idades, desvioPadrao);
+    fprintf(item7, "A %% de pessoas que morreram sem comorbidade: %.3lf%%", porcentagem_morreram_sem_comorbidade);
+  }
+  else
+  {
+    fprintf(item7, "A media e desvio padrao da idade: 0.000 -- 0.000\n");
+    fprintf(item7, "A %% de pessoas que morreram sem comorbidade: 0.000%%");
+  }
 
   fclose(item7);
 }
